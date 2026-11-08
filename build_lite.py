@@ -345,8 +345,8 @@ def build_musifyx_lite():
     <color name="bg_pill_border">#383838</color>
     <color name="bg_badge">#162816</color>
     <color name="bg_badge_border">#1DB954</color>
-    <color name="launcher_bg">#FFFFFF</color>
-    <color name="launcher_fg">#0A0A0A</color>
+    <color name="launcher_bg">#121212</color>
+    <color name="launcher_fg">#FFFFFF</color>
 </resources>''')
 
     with open(os.path.join(val_night_dir, "colors.xml"), "w", encoding="utf-8") as f:
@@ -505,6 +505,51 @@ def build_musifyx_lite():
     </item>
 </layer-list>''')
 
+    # Media Notification Action Icons
+    with open(os.path.join(drawable_dir, "ic_skip_previous.xml"), "w", encoding="utf-8") as f:
+        f.write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6,6h2v12H6zm3.5,6l8.5,6V6z"/>
+</vector>''')
+
+    with open(os.path.join(drawable_dir, "ic_skip_next.xml"), "w", encoding="utf-8") as f:
+        f.write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6,18l8.5,-6L6,6v12zM16,6v12h2V6h-2z"/>
+</vector>''')
+
+    with open(os.path.join(drawable_dir, "ic_play.xml"), "w", encoding="utf-8") as f:
+        f.write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M8,5v14l11,-7z"/>
+</vector>''')
+
+    with open(os.path.join(drawable_dir, "ic_pause.xml"), "w", encoding="utf-8") as f:
+        f.write('''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M6,19h4V5H6v14zm8,-14v14h4V5h-4z"/>
+</vector>''')
+
     # Adaptive icons XML in mipmap-anydpi-v26
     anydpi_dir = os.path.join(res_dir, "mipmap-anydpi-v26")
     os.makedirs(anydpi_dir, exist_ok=True)
@@ -531,124 +576,62 @@ def build_musifyx_lite():
 
     with open(os.path.join(layout_dir, "activity_main.xml"), "w", encoding="utf-8") as f:
         f.write('''<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/spotify_black">
 
-    <!-- Top Modern Toolbar -->
-    <LinearLayout
-        android:id="@+id/toolbar"
+    <!-- Pure Fullscreen Native Spotify Web View -->
+    <WebView
+        android:id="@+id/webview"
         android:layout_width="match_parent"
-        android:layout_height="54dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="12dp"
-        android:paddingEnd="12dp"
-        android:background="@color/spotify_black">
+        android:layout_height="match_parent"
+        android:background="@color/spotify_black"/>
 
-        <!-- Musify-X Logo -->
-        <ImageView
-            android:id="@+id/logo_icon"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:src="@drawable/ic_musifyx_logo"
-            android:contentDescription="Musify-X"/>
-
-        <!-- URL Pill -->
-        <LinearLayout
-            android:id="@+id/url_pill"
-            android:layout_width="0dp"
-            android:layout_height="34dp"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp"
-            android:layout_marginEnd="8dp"
-            android:background="@drawable/bg_url_pill"
-            android:gravity="center_vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp">
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_lock"
-                android:contentDescription="Secure"/>
-
-            <TextView
-                android:id="@+id/url_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
-                android:text="@string/spotify_url"
-                android:textColor="#DDDDDD"
-                android:textSize="12sp"
-                android:singleLine="true"/>
-        </LinearLayout>
-
-        <!-- Shields Badge Button -->
-        <LinearLayout
-            android:id="@+id/shields_badge"
-            android:layout_width="wrap_content"
-            android:layout_height="30dp"
-            android:background="@drawable/bg_shields_badge"
-            android:gravity="center_vertical"
-            android:paddingStart="8dp"
-            android:paddingEnd="8dp"
-            android:clickable="true"
-            android:focusable="true">
-
-            <ImageView
-                android:layout_width="14dp"
-                android:layout_height="14dp"
-                android:src="@drawable/ic_shield"
-                android:contentDescription="Shields"/>
-
-            <TextView
-                android:id="@+id/shields_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="SHIELDS"
-                android:textColor="@color/spotify_green"
-                android:textSize="10sp"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <!-- Reload Button -->
-        <ImageView
-            android:id="@+id/btn_reload"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="6dp"
-            android:padding="6dp"
-            android:src="@drawable/ic_reload"
-            android:background="?android:attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Reload"/>
-    </LinearLayout>
-
-    <!-- Progress Bar -->
+    <!-- Subtle Loading Progress Indicator -->
     <ProgressBar
         android:id="@+id/progress_bar"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="2.5dp"
+        android:layout_gravity="top"
         android:progressDrawable="@drawable/progress_bar_spotify"
         android:visibility="gone"/>
 
-    <!-- Main Web Container -->
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
+    <!-- Discreet Floating Shields Indicator (Top Right) -->
+    <LinearLayout
+        android:id="@+id/shields_badge"
+        android:layout_width="wrap_content"
+        android:layout_height="28dp"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_shields_badge"
+        android:gravity="center_vertical"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:elevation="8dp"
+        android:clickable="true"
+        android:focusable="true">
 
-        <WebView
-            android:id="@+id/webview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/spotify_black"/>
-    </FrameLayout>
-</LinearLayout>''')
+        <ImageView
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:src="@drawable/ic_shield"
+            android:contentDescription="Shields"/>
+
+        <TextView
+            android:id="@+id/shields_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="SHIELDS"
+            android:textColor="@color/spotify_green"
+            android:textSize="10sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
+</FrameLayout>''')
 
     with open(os.path.join(layout_dir, "dialog_shields.xml"), "w", encoding="utf-8") as f:
         f.write('''<?xml version="1.0" encoding="utf-8"?>
@@ -921,23 +904,152 @@ public class ShieldsManager {
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.MediaMetadata;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.os.Build;
 import android.os.IBinder;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MediaPlaybackService extends Service {
-    private static final String CHANNEL_ID = "musifyx_playback_channel";
-    private static final int NOTIF_ID = 2026;
+    public static final String CHANNEL_ID = "musifyx_playback_channel";
+    public static final int NOTIF_ID = 2026;
+    public static final String ACTION_UPDATE_METADATA = "ACTION_UPDATE_METADATA";
+    public static final String ACTION_PLAY_PAUSE = "ACTION_PLAY_PAUSE";
+    public static final String ACTION_NEXT = "ACTION_NEXT";
+    public static final String ACTION_PREV = "ACTION_PREV";
+
+    private MediaSession mediaSession;
+    private NotificationManager notificationManager;
+    private String currentTitle = "Spotify Web Player";
+    private String currentArtist = "Musify-X Zero-Telemetry";
+    private String currentArtworkUrl = "";
+    private Bitmap currentArtBitmap = null;
+    private boolean isPlaying = false;
 
     @Override
     public void onCreate() {
         super.onCreate();
+        notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         createNotificationChannel();
+        initMediaSession();
+    }
+
+    private void initMediaSession() {
+        mediaSession = new MediaSession(this, "MusifyXSession");
+        mediaSession.setActive(true);
+        mediaSession.setCallback(new MediaSession.Callback() {
+            @Override
+            public void onPlay() {
+                MainActivity.dispatchMediaAction(ACTION_PLAY_PAUSE);
+            }
+
+            @Override
+            public void onPause() {
+                MainActivity.dispatchMediaAction(ACTION_PLAY_PAUSE);
+            }
+
+            @Override
+            public void onSkipToNext() {
+                MainActivity.dispatchMediaAction(ACTION_NEXT);
+            }
+
+            @Override
+            public void onSkipToPrevious() {
+                MainActivity.dispatchMediaAction(ACTION_PREV);
+            }
+        });
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        if (intent != null) {
+            String action = intent.getAction();
+            if (ACTION_PLAY_PAUSE.equals(action) || ACTION_NEXT.equals(action) || ACTION_PREV.equals(action)) {
+                MainActivity.dispatchMediaAction(action);
+            } else if (ACTION_UPDATE_METADATA.equals(action)) {
+                String title = intent.getStringExtra("title");
+                String artist = intent.getStringExtra("artist");
+                String artworkUrl = intent.getStringExtra("artworkUrl");
+                boolean playing = intent.getBooleanExtra("isPlaying", false);
+                updateMetadata(title, artist, artworkUrl, playing);
+            }
+        }
+        return START_STICKY;
+    }
+
+    private void updateMetadata(String title, String artist, String artworkUrl, boolean playing) {
+        if (title != null && !title.isEmpty()) currentTitle = title;
+        if (artist != null && !artist.isEmpty()) currentArtist = artist;
+        this.isPlaying = playing;
+
+        if (artworkUrl != null && !artworkUrl.isEmpty() && !artworkUrl.equals(currentArtworkUrl)) {
+            currentArtworkUrl = artworkUrl;
+            downloadArtworkAsync(artworkUrl);
+        } else {
+            publishNotification();
+        }
+    }
+
+    private void downloadArtworkAsync(String urlStr) {
+        new Thread(() -> {
+            try {
+                URL url = new URL(urlStr);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setConnectTimeout(6000);
+                conn.setReadTimeout(6000);
+                conn.setDoInput(true);
+                conn.connect();
+                InputStream is = conn.getInputStream();
+                Bitmap bmp = BitmapFactory.decodeStream(is);
+                is.close();
+                if (bmp != null) {
+                    currentArtBitmap = bmp;
+                }
+            } catch (Exception ignored) {}
+            publishNotification();
+        }).start();
+    }
+
+    private void publishNotification() {
+        // Update MediaSession
+        MediaMetadata.Builder mb = new MediaMetadata.Builder()
+            .putString(MediaMetadata.METADATA_KEY_TITLE, currentTitle)
+            .putString(MediaMetadata.METADATA_KEY_ARTIST, currentArtist)
+            .putString(MediaMetadata.METADATA_KEY_ALBUM, "Musify-X");
+        if (currentArtBitmap != null) {
+            mb.putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, currentArtBitmap);
+        }
+        mediaSession.setMetadata(mb.build());
+
+        PlaybackState.Builder pb = new PlaybackState.Builder()
+            .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE |
+                        PlaybackState.ACTION_PLAY_PAUSE | PlaybackState.ACTION_SKIP_TO_NEXT |
+                        PlaybackState.ACTION_SKIP_TO_PREVIOUS)
+            .setState(isPlaying ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED,
+                      PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1.0f);
+        mediaSession.setPlaybackState(pb.build());
+
+        // PendingIntents for actions
+        Intent prevIntent = new Intent(this, MediaPlaybackService.class).setAction(ACTION_PREV);
+        PendingIntent prevPI = PendingIntent.getService(this, 10, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent playIntent = new Intent(this, MediaPlaybackService.class).setAction(ACTION_PLAY_PAUSE);
+        PendingIntent playPI = PendingIntent.getService(this, 11, playIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent nextIntent = new Intent(this, MediaPlaybackService.class).setAction(ACTION_NEXT);
+        PendingIntent nextPI = PendingIntent.getService(this, 12, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        Intent launchIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentPI = PendingIntent.getActivity(this, 1, launchIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
         Notification.Builder builder;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder = new Notification.Builder(this, CHANNEL_ID);
@@ -945,19 +1057,37 @@ public class MediaPlaybackService extends Service {
             builder = new Notification.Builder(this);
         }
 
+        Notification.MediaStyle mediaStyle = new Notification.MediaStyle()
+            .setMediaSession(mediaSession.getSessionToken())
+            .setShowActionsInCompactView(0, 1, 2);
+
+        int playIcon = isPlaying ? R.drawable.ic_pause : R.drawable.ic_play;
+        String playTitle = isPlaying ? "Pause" : "Play";
+
         Notification notification = builder
-            .setContentTitle("Musify-X")
-            .setContentText("Spotify Audio Streaming • Zero-Telemetry Shields Active")
+            .setStyle(mediaStyle)
+            .setContentTitle(currentTitle)
+            .setContentText(currentArtist)
+            .setSubText("Spotify • Musify-X")
             .setSmallIcon(R.drawable.ic_musifyx_logo)
-            .setOngoing(true)
+            .setLargeIcon(currentArtBitmap != null ? currentArtBitmap : BitmapFactory.decodeResource(getResources(), R.drawable.ic_musifyx_logo))
+            .setContentIntent(contentPI)
+            .addAction(R.drawable.ic_skip_previous, "Previous", prevPI)
+            .addAction(playIcon, playTitle, playPI)
+            .addAction(R.drawable.ic_skip_next, "Next", nextPI)
+            .setOngoing(isPlaying)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .build();
 
         startForeground(NOTIF_ID, notification);
-        return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        if (mediaSession != null) {
+            mediaSession.setActive(false);
+            mediaSession.release();
+        }
         stopForeground(true);
         super.onDestroy();
     }
@@ -971,13 +1101,12 @@ public class MediaPlaybackService extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                 CHANNEL_ID,
-                "Musify-X Audio Playback",
+                "Musify-X Media Playback",
                 NotificationManager.IMPORTANCE_LOW
             );
-            channel.setDescription("Background streaming service for Spotify");
-            NotificationManager nm = getSystemService(NotificationManager.class);
-            if (nm != null) {
-                nm.createNotificationChannel(channel);
+            channel.setDescription("Spotify Media Player Controls & Album Art");
+            if (notificationManager != null) {
+                notificationManager.createNotificationChannel(channel);
             }
         }
     }
@@ -1001,6 +1130,11 @@ public class MusifyXBridge {
     public void onMediaStateChanged(boolean isPlaying) {
         activity.runOnUiThread(() -> activity.handleMediaState(isPlaying));
     }
+
+    @JavascriptInterface
+    public void updatePlaybackMetadata(String title, String artist, String artworkUrl, boolean isPlaying) {
+        activity.runOnUiThread(() -> activity.handlePlaybackMetadata(title, artist, artworkUrl, isPlaying));
+    }
 }
 ''')
 
@@ -1011,6 +1145,7 @@ public class MusifyXBridge {
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -1029,12 +1164,16 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.Manifest;
 import java.io.ByteArrayInputStream;
 
 public class MainActivity extends Activity {
     private static final String SPOTIFY_HOME = "https://open.spotify.com";
-    private WebView webView;
+    public static MainActivity activeInstance;
+
+    public WebView webView;
     private ProgressBar progressBar;
+    private LinearLayout shieldsBadge;
     private TextView shieldsLabel;
     private ShieldsManager shieldsManager;
     private boolean isPlaying = false;
@@ -1042,20 +1181,37 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        activeInstance = this;
         setContentView(R.layout.activity_main);
 
         shieldsManager = ShieldsManager.getInstance(this);
 
         progressBar = findViewById(R.id.progress_bar);
         shieldsLabel = findViewById(R.id.shields_label);
-        LinearLayout shieldsBadge = findViewById(R.id.shields_badge);
-        ImageView btnReload = findViewById(R.id.btn_reload);
+        shieldsBadge = findViewById(R.id.shields_badge);
         webView = findViewById(R.id.webview);
 
-        shieldsBadge.setOnClickListener(v -> showShieldsDialog());
-        btnReload.setOnClickListener(v -> webView.reload());
+        if (shieldsBadge != null) {
+            shieldsBadge.setOnClickListener(v -> showShieldsDialog());
+            // Auto-dim floating badge after 3.5 seconds
+            shieldsBadge.postDelayed(() -> {
+                if (shieldsBadge != null) {
+                    shieldsBadge.animate().alpha(0.35f).setDuration(600).start();
+                }
+            }, 3500);
+            shieldsBadge.setOnTouchListener((v, event) -> {
+                shieldsBadge.setAlpha(1.0f);
+                return false;
+            });
+        }
 
         setupWebView();
+
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+            }
+        }
 
         String targetUrl = SPOTIFY_HOME;
         if (getIntent() != null && getIntent().getData() != null) {
@@ -1092,6 +1248,18 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (request == null || request.getUrl() == null) return false;
+                String url = request.getUrl().toString();
+                // Block redirects to app stores, deep links, or download pages to keep everything in Musify-X
+                if (url.startsWith("market://") || url.startsWith("intent://") ||
+                    url.contains("play.google.com/store") || url.startsWith("spotify:")) {
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
             public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 if (request != null && shieldsManager.shouldBlock(request.getUrl())) {
                     if (shieldsLabel != null) {
@@ -1104,13 +1272,17 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                progressBar.setVisibility(View.VISIBLE);
-                progressBar.setProgress(10);
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    progressBar.setProgress(15);
+                }
             }
 
             @Override
             public void onPageFinished(WebView view, String url) {
-                progressBar.setVisibility(View.GONE);
+                if (progressBar != null) {
+                    progressBar.setVisibility(View.GONE);
+                }
                 injectMusifyXStyles(view);
             }
         });
@@ -1118,9 +1290,11 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
             public void onProgressChanged(WebView view, int newProgress) {
-                progressBar.setProgress(newProgress);
-                if (newProgress >= 100) {
-                    progressBar.setVisibility(View.GONE);
+                if (progressBar != null) {
+                    progressBar.setProgress(newProgress);
+                    if (newProgress >= 100) {
+                        progressBar.setVisibility(View.GONE);
+                    }
                 }
             }
 
@@ -1146,28 +1320,146 @@ public class MainActivity extends Activity {
             + "    div[data-testid=\\"top-bar-install-app-btn\\"], "
             + "    a[href*=\\"/premium\\"], "
             + "    div[class*=\\"Banner\\"], "
-            + "    div[class*=\\"UpgradeButton\\"] { display: none !important; }';"
+            + "    div[class*=\\"UpgradeButton\\"], "
+            + "    div[data-testid=\\"get-app-modal\\"], "
+            + "    div[class*=\\"Tooltip\\"], "
+            + "    div[class*=\\"Bubble\\"], "
+            + "    div[class*=\\"Popover\\"], "
+            + "    div[class*=\\"InstallApp\\"], "
+            + "    div[role=\\"dialog\\"][aria-label*=\\"Spotify\\"], "
+            + "    div[role=\\"dialog\\"][aria-label*=\\"Library\\"], "
+            + "    button[data-testid*=\\"open-app\\"], "
+            + "    button[data-testid*=\\"open-in-app\\"], "
+            + "    a[data-testid*=\\"open-app\\"], "
+            + "    a[data-testid*=\\"open-in-app\\"], "
+            + "    a[href*=\\"spotify.com/download\\"], "
+            + "    a[href*=\\"spotify.link\\"], "
+            + "    nav li:has(a[href*=\\"download\\"]), "
+            + "    nav li:has(button[aria-label*=\\"Get App\\"]), "
+            + "    button[aria-label*=\\"Get App\\"], "
+            + "    button[aria-label*=\\"Open App\\"] { "
+            + "      display: none !important; "
+            + "      visibility: hidden !important; "
+            + "      pointer-events: none !important; "
+            + "      height: 0 !important; "
+            + "      opacity: 0 !important; "
+            + "    }';"
             + "  document.head.appendChild(style);"
-            + "  document.addEventListener('play', function(e) {"
-            + "    if (window.MusifyXBridge) window.MusifyXBridge.onMediaStateChanged(true);"
-            + "  }, true);"
-            + "  document.addEventListener('pause', function(e) {"
-            + "    if (window.MusifyXBridge) window.MusifyXBridge.onMediaStateChanged(false);"
-            + "  }, true);"
+            + "  function nukeGetApp() {"
+            + "    document.querySelectorAll('button').forEach(function(b) {"
+            + "      var txt = (b.textContent || '').trim().toLowerCase();"
+            + "      if (txt === 'not now' || txt === 'dismiss') {"
+            + "        try { b.click(); } catch(e) {}"
+            + "      }"
+            + "    });"
+            + "    document.querySelectorAll('button, a, div[role=\\"button\\"]').forEach(function(el) {"
+            + "      var t = (el.textContent || '').trim().toLowerCase();"
+            + "      if (t === 'open app' || t === 'get app' || t === 'install app' || t === 'use app') {"
+            + "        el.style.setProperty('display', 'none', 'important');"
+            + "      }"
+            + "    });"
+            + "    document.querySelectorAll('div, section, aside').forEach(function(el) {"
+            + "      var txt = el.textContent || '';"
+            + "      if ((txt.includes('Enjoy Your Library') || txt.includes('Spotify App')) && (txt.includes('Get App') || txt.includes('Not now') || txt.includes('saved songs'))) {"
+            + "        el.style.setProperty('display', 'none', 'important');"
+            + "        el.style.setProperty('visibility', 'hidden', 'important');"
+            + "        el.style.setProperty('height', '0px', 'important');"
+            + "      }"
+            + "    });"
+            + "    document.querySelectorAll('nav a, nav button, footer a, header a').forEach(function(el) {"
+            + "      var t = (el.textContent || '').toLowerCase();"
+            + "      var h = (el.getAttribute('href') || '').toLowerCase();"
+            + "      if (t.includes('get app') || t.includes('install app') || t.includes('open app') || h.includes('download')) {"
+            + "        var li = el.closest('li') || el;"
+            + "        li.style.setProperty('display', 'none', 'important');"
+            + "      }"
+            + "    });"
+            + "  }"
+            + "  nukeGetApp();"
+            + "  var obs = new MutationObserver(nukeGetApp);"
+            + "  obs.observe(document.documentElement, { childList: true, subtree: true });"
+            + "  function syncMetadata() {"
+            + "    var title = '';"
+            + "    var artist = '';"
+            + "    var artworkUrl = '';"
+            + "    var isPlaying = false;"
+            + "    if (navigator.mediaSession && navigator.mediaSession.metadata) {"
+            + "      title = navigator.mediaSession.metadata.title || '';"
+            + "      artist = navigator.mediaSession.metadata.artist || '';"
+            + "      if (navigator.mediaSession.metadata.artwork && navigator.mediaSession.metadata.artwork.length > 0) {"
+            + "        artworkUrl = navigator.mediaSession.metadata.artwork[navigator.mediaSession.metadata.artwork.length - 1].src || '';"
+            + "      }"
+            + "    }"
+            + "    if (navigator.mediaSession && navigator.mediaSession.playbackState) {"
+            + "      isPlaying = navigator.mediaSession.playbackState === 'playing';"
+            + "    }"
+            + "    if (!title) {"
+            + "      var tEl = document.querySelector('[data-testid=\\"context-item-info-title\\"]') || document.querySelector('a[data-testid=\\"context-item-link\\"]');"
+            + "      if (tEl) title = tEl.textContent || '';"
+            + "    }"
+            + "    if (!artist) {"
+            + "      var aEl = document.querySelector('[data-testid=\\"context-item-info-subtitles\\"]') || document.querySelector('[data-testid=\\"track-info-artists\\"]');"
+            + "      if (aEl) artist = aEl.textContent || '';"
+            + "    }"
+            + "    if (!artworkUrl) {"
+            + "      var imgEl = document.querySelector('[data-testid=\\"cover-art-image\\"]') || document.querySelector('img[src*=\\"i.scdn.co\\"]');"
+            + "      if (imgEl) artworkUrl = imgEl.src || '';"
+            + "    }"
+            + "    var playBtn = document.querySelector('button[data-testid=\\"control-button-playpause\\"]');"
+            + "    if (playBtn) {"
+            + "      var aria = (playBtn.getAttribute('aria-label') || '').toLowerCase();"
+            + "      isPlaying = aria.includes('pause');"
+            + "    } else if (!navigator.mediaSession || !navigator.mediaSession.playbackState) {"
+            + "      var audio = document.querySelector('audio');"
+            + "      if (audio) isPlaying = !audio.paused;"
+            + "    }"
+            + "    if (title && window.MusifyXBridge) {"
+            + "      window.MusifyXBridge.updatePlaybackMetadata(title, artist, artworkUrl, isPlaying);"
+            + "    }"
+            + "  }"
+            + "  setInterval(syncMetadata, 800);"
             + "})();";
         view.evaluateJavascript(js, null);
     }
 
     public void handleMediaState(boolean playing) {
         this.isPlaying = playing;
+    }
+
+    public void handlePlaybackMetadata(String title, String artist, String artworkUrl, boolean playing) {
+        this.isPlaying = playing;
         Intent svc = new Intent(this, MediaPlaybackService.class);
-        if (playing) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                startForegroundService(svc);
-            } else {
-                startService(svc);
-            }
+        svc.setAction(MediaPlaybackService.ACTION_UPDATE_METADATA);
+        svc.putExtra("title", title);
+        svc.putExtra("artist", artist);
+        svc.putExtra("artworkUrl", artworkUrl);
+        svc.putExtra("isPlaying", playing);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            startForegroundService(svc);
+        } else {
+            startService(svc);
         }
+    }
+
+    public static void dispatchMediaAction(String action) {
+        if (activeInstance == null || activeInstance.webView == null) return;
+        activeInstance.runOnUiThread(() -> {
+            if (MediaPlaybackService.ACTION_PLAY_PAUSE.equals(action)) {
+                String js = "(function() {"
+                    + "  var btn = document.querySelector('button[data-testid=\\"control-button-playpause\\"]');"
+                    + "  if (btn) { btn.click(); return; }"
+                    + "  var audio = document.querySelector('audio');"
+                    + "  if (audio) { if (audio.paused) audio.play(); else audio.pause(); }"
+                    + "})();";
+                activeInstance.webView.evaluateJavascript(js, null);
+            } else if (MediaPlaybackService.ACTION_NEXT.equals(action)) {
+                activeInstance.webView.evaluateJavascript(
+                    "document.querySelector('button[data-testid=\\"control-button-skip-forward\\"]')?.click();", null);
+            } else if (MediaPlaybackService.ACTION_PREV.equals(action)) {
+                activeInstance.webView.evaluateJavascript(
+                    "document.querySelector('button[data-testid=\\"control-button-skip-back\\"]')?.click();", null);
+            }
+        });
     }
 
     private void updateShieldsDisplay() {
@@ -1210,7 +1502,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        // Do NOT pause WebView timers or audio rendering when playing in background
         if (!isPlaying && webView != null) {
             webView.onPause();
         }
@@ -1226,6 +1517,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        activeInstance = null;
         if (webView != null) {
             webView.destroy();
         }

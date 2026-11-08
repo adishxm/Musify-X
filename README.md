@@ -42,6 +42,11 @@
 | <img src="assets/screenshots/inapp_light.png" width="360" alt="Musify-X In-App Light Mode"> | <img src="assets/screenshots/inapp_dark.png" width="360" alt="Musify-X In-App Dark Mode"> |
 | *Active liquid 'M' Shields button in navigation bar* | *Orange `#FFFF5601` liquid 'M' over dark browser chrome* |
 
+| ⚙️ Settings (Rebranded Features) | ℹ️ About Musify-X Screen |
+|:---:|:---:|
+| <img src="assets/screenshots/settings_screen.png" width="360" alt="Musify-X Settings Screen"> | <img src="assets/screenshots/about_screen.png" width="360" alt="Musify-X About Screen"> |
+| *Musify-X VPN, Shields, News, Wallet* | *Application version & Musify-X Authors* |
+
 | 📱 App Drawer (Light Theme) | 📱 App Drawer (Dark Theme) |
 |:---:|:---:|
 | <img src="assets/screenshots/drawer_light.png" width="360" alt="Musify-X App Drawer Light"> | <img src="assets/screenshots/drawer_dark.png" width="360" alt="Musify-X App Drawer Dark"> |

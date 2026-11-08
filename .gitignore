@@ -22,6 +22,7 @@ nottopushongit/
 *.apk
 *.idsig
 *.flat
+__pycache__/
 build_temp/
 test_compile/
 test_aapt/

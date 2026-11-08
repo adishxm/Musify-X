@@ -576,17 +576,101 @@ def build_musifyx_lite():
 
     with open(os.path.join(layout_dir, "activity_main.xml"), "w", encoding="utf-8") as f:
         f.write('''<?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:background="@color/spotify_black">
 
-    <!-- Pure Fullscreen Native Spotify Web View -->
-    <WebView
-        android:id="@+id/webview"
+    <!-- Top Modern Musify-X Toolbar -->
+    <LinearLayout
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/spotify_black"/>
+        android:layout_height="54dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:background="@color/spotify_black">
+
+        <!-- Musify-X Logo -->
+        <ImageView
+            android:id="@+id/logo_icon"
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:src="@drawable/ic_musifyx_logo"
+            android:contentDescription="Musify-X"/>
+
+        <!-- URL Pill -->
+        <LinearLayout
+            android:id="@+id/url_pill"
+            android:layout_width="0dp"
+            android:layout_height="34dp"
+            android:layout_weight="1"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/bg_url_pill"
+            android:gravity="center_vertical"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_lock"
+                android:contentDescription="Secure"/>
+
+            <TextView
+                android:id="@+id/url_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="@string/spotify_url"
+                android:textColor="#DDDDDD"
+                android:textSize="12sp"
+                android:singleLine="true"/>
+        </LinearLayout>
+
+        <!-- Shields Badge Button -->
+        <LinearLayout
+            android:id="@+id/shields_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="30dp"
+            android:background="@drawable/bg_shields_badge"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_shield"
+                android:contentDescription="Shields"/>
+
+            <TextView
+                android:id="@+id/shields_label"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="SHIELDS"
+                android:textColor="@color/spotify_green"
+                android:textSize="10sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
+
+        <!-- Reload Button -->
+        <ImageView
+            android:id="@+id/btn_reload"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:padding="6dp"
+            android:src="@drawable/ic_reload"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Reload"/>
+    </LinearLayout>
 
     <!-- Subtle Loading Progress Indicator -->
     <ProgressBar
@@ -594,44 +678,22 @@ def build_musifyx_lite():
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="2.5dp"
-        android:layout_gravity="top"
         android:progressDrawable="@drawable/progress_bar_spotify"
         android:visibility="gone"/>
 
-    <!-- Discreet Floating Shields Indicator (Top Right) -->
-    <LinearLayout
-        android:id="@+id/shields_badge"
-        android:layout_width="wrap_content"
-        android:layout_height="28dp"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/bg_shields_badge"
-        android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:elevation="8dp"
-        android:clickable="true"
-        android:focusable="true">
+    <!-- Main Web Container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <ImageView
-            android:layout_width="14dp"
-            android:layout_height="14dp"
-            android:src="@drawable/ic_shield"
-            android:contentDescription="Shields"/>
-
-        <TextView
-            android:id="@+id/shields_label"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:text="SHIELDS"
-            android:textColor="@color/spotify_green"
-            android:textSize="10sp"
-            android:textStyle="bold"/>
-    </LinearLayout>
-
-</FrameLayout>''')
+        <WebView
+            android:id="@+id/webview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/spotify_black"/>
+    </FrameLayout>
+</LinearLayout>''')
 
     with open(os.path.join(layout_dir, "dialog_shields.xml"), "w", encoding="utf-8") as f:
         f.write('''<?xml version="1.0" encoding="utf-8"?>
@@ -1189,20 +1251,14 @@ public class MainActivity extends Activity {
         progressBar = findViewById(R.id.progress_bar);
         shieldsLabel = findViewById(R.id.shields_label);
         shieldsBadge = findViewById(R.id.shields_badge);
+        ImageView btnReload = findViewById(R.id.btn_reload);
         webView = findViewById(R.id.webview);
 
         if (shieldsBadge != null) {
             shieldsBadge.setOnClickListener(v -> showShieldsDialog());
-            // Auto-dim floating badge after 3.5 seconds
-            shieldsBadge.postDelayed(() -> {
-                if (shieldsBadge != null) {
-                    shieldsBadge.animate().alpha(0.35f).setDuration(600).start();
-                }
-            }, 3500);
-            shieldsBadge.setOnTouchListener((v, event) -> {
-                shieldsBadge.setAlpha(1.0f);
-                return false;
-            });
+        }
+        if (btnReload != null) {
+            btnReload.setOnClickListener(v -> webView.reload());
         }
 
         setupWebView();

@@ -24,5 +24,13 @@ nottopushongit/
 *.flat
 __pycache__/
 build_temp/
+build_lite_temp/
+.adblock_cache/
 test_compile/
 test_aapt/
+/screenshots/
+*.log
+/window_dump.xml
+/dialog_dump.xml
+/home_dump.xml
+/musifyx_*.png

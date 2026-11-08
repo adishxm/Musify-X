@@ -28,9 +28,27 @@
 
 ---
 
+### 📦 Editions & Compatibility
+
+Musify-X is available in two specialized editions tailored to your device requirements:
+
+| Edition | Package | Size | Rendering Engine | Privacy Shields | Best For |
+|---|---|---|---|---|---|
+| **⚡ Musify-X Lite** *(Recommended)* | `com.musifyx.lite` | **~14 MB** | System Chromium Blink / WebView | 95,000+ Offline Rules | Ultra-fast startup, low storage & memory, Spotify web playback |
+| **🚀 Musify-X Full** | `com.musifyx.browser` | **~404 MB** | Bundled Standalone Chromium Core | Engine-Level Native C++ | Complete browser experience with full Chromium customization |
+
+---
+
 ## 📸 Visual Showcase
 
-### 🌓 Dynamic Launcher & In-App Shields
+### ⚡ Musify-X Lite (~14 MB Edition)
+
+| 🎵 Spotify Web Auto-Browse | 🛡️ Zero-Telemetry Privacy Shields |
+|:---:|:---:|
+| <img src="assets/screenshots/musifyx_lite_spotify.png" width="360" alt="Musify-X Lite Spotify Web Player"> | <img src="assets/screenshots/musifyx_lite_shields_dialog.png" width="360" alt="Musify-X Lite Shields Dialog"> |
+| *Auto-navigates to Spotify with custom dark toolbar & URL pill* | *Built-in offline ad & tracker blocker with live interception counter* |
+
+### 🌓 Dynamic Launcher & In-App Shields (Full Edition)
 
 | ☀️ Launcher (Light Mode) | 🌙 Launcher (Dark Mode) |
 |:---:|:---:|
@@ -136,11 +154,18 @@ flowchart TD
   ```
 
 ### 2. Build Musify-X APK
-Run the build script from the project root:
-```bash
-python build.py
-```
-Upon completion, the signed package is generated at `./Musify-X.apk`.
+
+- **Build Musify-X Lite (~14 MB)**:
+  ```bash
+  python build_lite.py
+  ```
+  Generates the signed lightweight package at `./Musify-X-Lite.apk`.
+
+- **Build Musify-X Full (~404 MB)**:
+  ```bash
+  python build.py
+  ```
+  Generates the signed complete Chromium package at `./Musify-X.apk`.
 
 ### 3. Launch & Test on Android Emulator
 You can launch the emulator or perform an automated install & smoke test directly:
@@ -149,7 +174,11 @@ You can launch the emulator or perform an automated install & smoke test directl
   ```cmd
   launch-emulator.bat
   ```
-- **Automated Install & Verify**:
+- **Test Musify-X Lite (~14 MB)**:
+  ```cmd
+  test-lite-on-emulator.bat
+  ```
+- **Test Musify-X Full (~404 MB)**:
   ```cmd
   test-on-emulator.bat
   ```
@@ -176,9 +205,11 @@ Musify-X/
 │       └── drawer_dark.png              # Emulator verified dark app drawer
 ├── .gitattributes                       # Git line-ending normalizations
 ├── .gitignore                           # Excludes large binaries (>100MB) & cache
-├── build.py                             # Standalone Musify-X build & signing engine
+├── build.py                             # Full Chromium Musify-X build & rebranding engine
+├── build_lite.py                        # Ultra-compact 14MB Musify-X Lite build engine
 ├── launch-emulator.bat                  # Fast emulator launcher with lock recovery
-├── test-on-emulator.bat                 # Automated installation and testing script
+├── test-on-emulator.bat                 # Automated installation and testing for Full edition
+├── test-lite-on-emulator.bat            # Automated installation and testing for Lite edition
 ├── CONTRIBUTING.md                      # Contribution guidelines
 ├── LICENSE                              # Apache 2.0 open-source license
 └── README.md                            # Project documentation

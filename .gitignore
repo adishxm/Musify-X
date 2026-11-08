@@ -1,0 +1,27 @@
+*.iml
+.gradle
+/local.properties
+/.idea/
+.DS_Store
+/build
+*/build
+*.aab
+*.ap_
+captures/
+.externalNativeBuild
+.cxx
+*.keystore
+*.jks
+signing.properties
+.kotlin/
+*.idsig
+nottopushongit/
+.vscode/
+
+# Large binaries & temp artifacts
+*.apk
+*.flat
+.brain/
+build_temp/
+test_compile/
+test_aapt/

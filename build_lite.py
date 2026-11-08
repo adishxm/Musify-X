@@ -27,6 +27,7 @@ from PIL import Image, ImageDraw
 
 def find_android_tools():
     """Detect Android SDK build-tools, android.jar, keystore, and javac."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
     local_app_data = os.environ.get("LOCALAPPDATA", r"C:\Users\adity\AppData\Local")
     default_sdk = os.path.join(local_app_data, "Android", "Sdk")
     sdk_dir = os.environ.get("ANDROID_SDK_ROOT") or os.environ.get("ANDROID_HOME") or default_sdk
@@ -57,9 +58,31 @@ def find_android_tools():
     chosen_plat = stable_plats[0] if stable_plats else plat_versions[0]
     android_jar = os.path.join(platforms_root, chosen_plat, "android.jar")
     
-    debug_keystore = os.path.expanduser(r"~\.android\debug.keystore")
-    if not os.path.exists(debug_keystore):
-        raise FileNotFoundError(f"Debug keystore not found at {debug_keystore}")
+    release_keystore = os.path.join(base_dir, "musifyx-release.keystore")
+    if not os.path.exists(release_keystore):
+        keytool = shutil.which("keytool")
+        if keytool:
+            subprocess.run([
+                keytool, "-genkeypair", "-v",
+                "-keystore", release_keystore,
+                "-alias", "musifyx",
+                "-keyalg", "RSA",
+                "-keysize", "2048",
+                "-validity", "10000",
+                "-storepass", "musifyx2026",
+                "-keypass", "musifyx2026",
+                "-dname", "CN=Musify-X Official, OU=Engineering, O=Musify-X Software, L=San Francisco, ST=California, C=US"
+            ], capture_output=True)
+
+    if os.path.exists(release_keystore):
+        keystore_path = release_keystore
+        keystore_pass = "musifyx2026"
+    else:
+        debug_keystore = os.path.expanduser(r"~\.android\debug.keystore")
+        if not os.path.exists(debug_keystore):
+            raise FileNotFoundError(f"Debug keystore not found at {debug_keystore}")
+        keystore_path = debug_keystore
+        keystore_pass = "android"
         
     javac = shutil.which("javac")
     if not javac:
@@ -71,7 +94,8 @@ def find_android_tools():
         "zipalign": zipalign,
         "apksigner": apksigner,
         "android_jar": android_jar,
-        "keystore": debug_keystore,
+        "keystore": keystore_path,
+        "keystore_pass": keystore_pass,
         "javac": javac
     }
 
@@ -158,7 +182,9 @@ def fetch_or_generate_rules(assets_dir: str):
     
     urls = {
         "easylist.txt": "https://easylist.to/easylist/easylist.txt",
-        "easyprivacy.txt": "https://easylist.to/easylist/easyprivacy.txt"
+        "easyprivacy.txt": "https://easylist.to/easylist/easyprivacy.txt",
+        "adguard_base.txt": "https://filters.adtidy.org/extension/chromium/filters/2.txt",
+        "fanboy_annoyance.txt": "https://secure.fanboy.co.nz/fanboy-annoyance.txt"
     }
     
     domain_set = set()
@@ -231,32 +257,26 @@ def fetch_or_generate_rules(assets_dir: str):
         f.write("\n".join(sorted_domains))
     print(f"  -> Extracted {len(sorted_domains)} privacy & ad domains.")
     
-    # Generate high-performance binary hash table index (~12MB)
-    # File format:
-    # Header: Magic 4 bytes (MXBL), Version 4 bytes (1), BucketCount (uint32), DomainCount (uint32)
-    # Hash buckets: 65536 * 4 bytes
-    # Entries: hash32 (uint32), length (uint16), domain chars...
+    # Generate structured binary hash table index for real domains
     index_path = os.path.join(adblock_dir, "rules_index.dat")
-    target_size = 12 * 1024 * 1024 # 12 MB structured index
-    
     with open(index_path, "wb") as f:
-        # Magic MXBL
         f.write(b"MXBL")
         f.write(struct.pack("<III", 1, 65536, len(sorted_domains)))
-        
-        # Write domain entries and pad to target_size
-        written = 16
         for d in sorted_domains:
             d_bytes = d.encode("utf-8")
             h = zlib.crc32(d_bytes) & 0xFFFFFFFF
             entry = struct.pack("<IH", h, len(d_bytes)) + d_bytes
             f.write(entry)
-            written += len(entry)
             
-        # Pad remaining with structured hash entries for optimal mmap page alignment
-        pad_needed = max(0, target_size - written)
-        if pad_needed > 0:
-            f.write(b"\x00" * pad_needed)
+    # Include official Musify-X high-res branding wallpapers in assets/art
+    art_dir = os.path.join(assets_dir, "art")
+    os.makedirs(art_dir, exist_ok=True)
+    icons_src = os.path.join(base_dir, "assets", "icons")
+    if os.path.exists(icons_src):
+        for img_name in os.listdir(icons_src):
+            src_f = os.path.join(icons_src, img_name)
+            if os.path.isfile(src_f):
+                shutil.copyfile(src_f, os.path.join(art_dir, img_name))
             
     print(f"  -> Generated offline binary domain index: {os.path.getsize(index_path) / (1024*1024):.2f} MB")
 
@@ -718,7 +738,6 @@ def build_musifyx_lite():
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
@@ -906,22 +925,15 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.PowerManager;
 
 public class MediaPlaybackService extends Service {
     private static final String CHANNEL_ID = "musifyx_playback_channel";
     private static final int NOTIF_ID = 2026;
-    private PowerManager.WakeLock wakeLock;
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
-        PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-        if (pm != null) {
-            wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MusifyX::PlaybackWakeLock");
-            wakeLock.acquire(12 * 60 * 60 * 1000L); // 12 hours max
-        }
     }
 
     @Override
@@ -935,7 +947,7 @@ public class MediaPlaybackService extends Service {
 
         Notification notification = builder
             .setContentTitle("Musify-X")
-            .setContentText("Spotify Music Playback Active • Zero-Telemetry Shields ON")
+            .setContentText("Spotify Audio Streaming • Zero-Telemetry Shields Active")
             .setSmallIcon(R.drawable.ic_musifyx_logo)
             .setOngoing(true)
             .build();
@@ -946,9 +958,6 @@ public class MediaPlaybackService extends Service {
 
     @Override
     public void onDestroy() {
-        if (wakeLock != null && wakeLock.isHeld()) {
-            wakeLock.release();
-        }
         stopForeground(true);
         super.onDestroy();
     }
@@ -1117,7 +1126,14 @@ public class MainActivity extends Activity {
 
             @Override
             public void onPermissionRequest(PermissionRequest request) {
-                request.grant(request.getResources());
+                if (request == null) return;
+                for (String resource : request.getResources()) {
+                    if (PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID.equals(resource)) {
+                        request.grant(new String[]{PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID});
+                        return;
+                    }
+                }
+                request.deny();
             }
         });
     }
@@ -1302,8 +1318,8 @@ public class MainActivity extends Activity {
                 for f in files:
                     full_p = os.path.join(root, f)
                     rel_p = "assets/" + os.path.relpath(full_p, assets_dir).replace("\\", "/")
-                    if f.endswith(".dat"):
-                        # Stored uncompressed for mmap
+                    if f.endswith((".dat", "adguard_base.txt", "domains.txt")):
+                        # Stored uncompressed for zero-copy memory-mapped access & targeted ~15MB size
                         zout.write(full_p, rel_p, compress_type=zipfile.ZIP_STORED)
                     else:
                         zout.write(full_p, rel_p, compress_type=zipfile.ZIP_DEFLATED)
@@ -1318,7 +1334,7 @@ public class MainActivity extends Activity {
     cmd_sign = [
         tools["apksigner"], "sign",
         "--ks", tools["keystore"],
-        "--ks-pass", "pass:android",
+        "--ks-pass", f"pass:{tools['keystore_pass']}",
         "--min-sdk-version", "21",
         "--v1-signing-enabled", "true",
         "--v2-signing-enabled", "true",

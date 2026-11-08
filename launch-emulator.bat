@@ -128,8 +128,8 @@ if not defined MUSIFYX_PKG (
 
 if defined MUSIFYX_PKG (
     echo Found installed Musify-X package: !MUSIFYX_PKG!
-    echo Launching Musify-X on emulator...
-    "%ADB_EXE%" shell monkey -p !MUSIFYX_PKG! -c android.intent.category.LAUNCHER 1 >nul 2>&1
+    echo Launching Musify-X on emulator (open.spotify.com)...
+    "%ADB_EXE%" shell am start -n "!MUSIFYX_PKG!/com.google.android.apps.chrome.Main" -d "https://open.spotify.com" >nul 2>&1
     echo Musify-X launched successfully!
 ) else (
     echo Musify-X is not yet installed on the emulator.

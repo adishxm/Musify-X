@@ -55,13 +55,15 @@
 
 ## ✨ Key Features
 
+- 🎵 **Native Spotify Web Experience** — Pre-configured to automatically launch into and browse `https://open.spotify.com` seamlessly on every startup, drawer tap, or homepage visit.
 - 🛡️ **Zero-Telemetry Privacy Shields** — Native engine-level blocking of third-party ad networks, tracking beacons, cross-site trackers, and invasive fingerprinting scripts.
 - 🌓 **Dynamic Day/Night Adaptive Launcher** — Custom Android Adaptive Icon engine that immediately transforms launcher iconography based on your device's system theme:
   - **Light Mode**: Crisp white circular disc with jet-black liquid 'M' foreground.
-  - **Dark Mode**: Deep obsidian dark circular disc (`#0A0A0E`) with luminous liquid 'M' foreground.
-- 🎨 **Liquid 'M' Design System** — Bespoke branding across the entire browsing experience:
-  - **URL Bar Active Shields**: Vibrant orange (`#FFFF5601`) liquid 'M' vector button.
+  - **Dark Mode**: Deep obsidian dark circular disc (`#0A0A0E`) with luminous white liquid 'M' foreground.
+- 🎨 **Liquid 'M' Design System (51 Clean Vector Assets)** — Completely eliminates all Brave lion logos across the application:
+  - **URL Bar Active Shields**: Crisp pure white (`#FFFFFFFF`) liquid 'M' vector button.
   - **URL Bar Inactive Shields**: Neutral subtle grey (`#FF888888`) liquid 'M' vector button.
+  - **In-App Branding**: 42 in-app toolbar, menu, and UI icons mapped directly to the liquid 'M'.
   - **Splash & Onboarding**: Clean white liquid 'M' brand vector.
 - ⚡ **Full Chromium & Blink Performance** — Powered by the industry-leading Chromium/Brave rendering core, delivering peak JavaScript execution speeds, instant page rendering, and standard compliance.
 - 🎵 **Uninterrupted Background Web Media** — Eliminates synthetic tab freezes and background audio playback pauses, allowing stutter-free playback on web audio and streaming portals.

@@ -99,10 +99,10 @@ if !errorlevel! neq 0 (
 )
 
 echo.
-echo [4/5] Launching Musify-X...
+echo [4/5] Launching Musify-X with open.spotify.com...
 "%ADB_EXE%" shell am force-stop "!PACKAGE_NAME!" >nul 2>&1
 timeout /t 1 /nobreak >nul
-"%ADB_EXE%" shell am start -n "!PACKAGE_NAME!/!MAIN_ACTIVITY!"
+"%ADB_EXE%" shell am start -n "!PACKAGE_NAME!/!MAIN_ACTIVITY!" -d "https://open.spotify.com"
 timeout /t 3 /nobreak >nul
 
 echo.

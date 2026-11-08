@@ -35,6 +35,8 @@ import io
 import struct
 import shutil
 import re
+import hashlib
+import zlib
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw
@@ -306,6 +308,76 @@ def rebrand_pak_data(pak_data: bytes) -> bytes:
     
     return header + index_bytes + alias_bytes + payload
 
+def patch_classes2_dex(dex_data: bytes) -> bytes:
+    """
+    Patches classes2.dex so that whenever Musify-X is opened,
+    it automatically navigates to and browses https://open.spotify.com:
+    1. Replaces string 29887 in-place with 'https://open.spotify.com/?source=musify-x-official' (exact 50 bytes).
+    2. Injects intent initialization into ChromeTabbedActivity.<init> (code_off=4320152):
+       When intent.getData() == null (e.g. launched from home screen / drawer / cold start),
+       it automatically sets data = https://open.spotify.com and action = ACTION_VIEW.
+    3. Patches default homepage in Lua2; (code_off=1699276) to open.spotify.com.
+    4. Recalculates SHA-1 and Adler32 checksums.
+    """
+    d = bytearray(dex_data)
+    
+    # 1. Update string 29887 in-place
+    target_idx = 29887
+    string_ids_off = struct.unpack('<I', d[60:64])[0]
+    old_off = struct.unpack('<I', d[string_ids_off + target_idx*4 : string_ids_off + (target_idx+1)*4])[0]
+    new_url = b'https://open.spotify.com/?source=musify-x-official'
+    assert len(new_url) == 50
+    assert d[old_off] == 50
+    d[old_off + 1 : old_off + 1 + 50] = new_url
+
+    # 2. Patch ChromeTabbedActivity.<init> at 4320152
+    code_off = 4320152
+    units = [
+        # 00-02: invoke-virtual {v3}, Activity.getIntent() -> 6e 10 69 04 03 00
+        0x106e, 0x0469, 0x0003,
+        # 03: move-result-object v0 -> 0c 00
+        0x000c,
+        # 04-05: if-eqz v0, +22 (to unit 26 return-void) -> 38 00 16 00
+        0x0038, 0x0016,
+        # 06-08: invoke-virtual {v0}, Intent.getData() -> 6e 10 72 06 00 00
+        0x106e, 0x0672, 0x0000,
+        # 09: move-result-object v1 -> 0c 01
+        0x010c,
+        # 10-11: if-nez v1, +16 (to unit 26 return-void) -> 39 01 10 00
+        0x0139, 0x0010,
+        # 12-13: const-string v1, 29887 (0x74bf) -> 1a 01 bf 74
+        0x011a, 0x74bf,
+        # 14-16: invoke-static {v1}, Uri.parse(String) -> 71 10 9f 0a 01 00
+        0x1071, 0x0a9f, 0x0001,
+        # 17: move-result-object v1 -> 0c 01
+        0x010c,
+        # 18-20: invoke-virtual {v0, v1}, Intent.setData(Uri) -> 6e 20 a3 06 10 00
+        0x206e, 0x06a3, 0x0010,
+        # 21-22: const-string v1, 25087 (0x61ff) -> 1a 01 ff 61
+        0x011a, 0x61ff,
+        # 23-25: invoke-virtual {v0, v1}, Intent.setAction(String) -> 6e 20 9d 06 10 00
+        0x206e, 0x069d, 0x0010,
+        # 26: return-void -> 0e 00
+        0x000e,
+    ]
+    while len(units) < 36:
+        units.append(0x0000)
+    assert len(units) == 36
+    insns_bytes = struct.pack(f'<{len(units)}H', *units)
+    d[code_off + 16 : code_off + 16 + len(insns_bytes)] = insns_bytes
+
+    # 3. Patch default homepage in Lua2; at 1699276
+    lua2_off = 1699276
+    d[lua2_off + 16 + 8 : lua2_off + 16 + 12] = struct.pack('<HH', 0x011a, 0x74bf)
+
+    # 4. Update checksums
+    d[12:32] = hashlib.sha1(d[32:]).digest()
+    adler = zlib.adler32(d[12:]) & 0xffffffff
+    d[8:12] = struct.pack('<I', adler)
+    
+    print("  -> Patched classes2.dex: ChromeTabbedActivity & HomepageManager default to open.spotify.com.")
+    return bytes(d)
+
 def main():
     base_dir = os.path.dirname(os.path.abspath(__file__))
     src_brave_apk = os.path.join(base_dir, "Brave.apk")
@@ -365,6 +437,7 @@ def main():
     path_288 = generate_svg_path(288, 288, 0.75)
 
     print("\n[Step 2/8] Generating Vector Drawables for In-App & Dynamic Launcher...")
+    # Base 9 icons
     with open(os.path.join(res_dir, "uwm.xml"), "w") as f:
         f.write(f'''<vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
@@ -372,7 +445,7 @@ def main():
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="#FFFF5601"
+        android:fillColor="#FFFFFFFF"
         android:pathData="{path_24}"/>
 </vector>''')
 
@@ -429,7 +502,7 @@ def main():
     android:viewportWidth="24"
     android:viewportHeight="24">
     <path
-        android:fillColor="#FFFF5601"
+        android:fillColor="#FFFFFFFF"
         android:pathData="{path_24}"/>
 </vector>''')
 
@@ -440,7 +513,7 @@ def main():
     android:viewportWidth="168"
     android:viewportHeight="168">
     <path
-        android:fillColor="#FFFF5601"
+        android:fillColor="#FFFFFFFF"
         android:pathData="{path_168}"/>
 </vector>''')
 
@@ -466,21 +539,81 @@ def main():
         android:pathData="M0,0h108v108h-108z"/>
 </vector>''')
 
+    # All 42 in-app lion vector replacements to completely eliminate Brave lion everywhere
+    lion_files_specs = [
+        ("-SX.xml", "v_sx", 272, 221, 272, 221, "#FFFFFFFF"),
+        ("2iB.xml", "v_2ib", 75, 18, 75, 18, "#FFFFFFFF"),
+        ("3DF.xml", "v_3df", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("3kr.xml", "v_3kr", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("9xr.xml", "v_9xr", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("G1k.xml", "v_g1k", 20, 20, 960, 960, "#FFFFFFFF"),
+        ("IHP.xml", "v_ihp", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("KAy.xml", "v_kay", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("KTE.xml", "v_kte", 128, 128, 128, 128, "#FFFFFFFF"),
+        ("PpV.xml", "v_ppv", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("Q1J.xml", "v_q1j", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("RSq.xml", "v_rsq", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("SGm.xml", "v_sgm", 200, 173, 207, 180, "#FFFFFFFF"),
+        ("SJ9.xml", "v_sj9", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("SOF.xml", "v_sof", 164, 162, 164, 162, "#FFFFFFFF"),
+        ("THr.xml", "v_thr", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("TKV.xml", "v_tkv", 200, 97, 200, 97, "#FFFFFFFF"),
+        ("aUO.xml", "v_auo", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("abX.xml", "v_abx", 114, 114, 114, 114, "#FFFFFFFF"),
+        ("b2P.xml", "v_b2p", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("bYe.xml", "v_bye", 164, 150, 164, 150, "#FFFFFFFF"),
+        ("cTk.xml", "v_ctk", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("egV.xml", "v_egv", 87, 102, 87, 102, "#FFFFFFFF"),
+        ("frC.xml", "v_frc", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("hEV.xml", "v_hev", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("kHH.xml", "v_khh", 412, 129, 412, 129, "#FFFFFFFF"),
+        ("kcY.xml", "v_kcy", 302, 302, 302, 302, "#FFFFFFFF"),
+        ("lFm.xml", "v_lfm", 311, 226, 311, 226, "#FFFFFFFF"),
+        ("n-E.xml", "v_ne", 114, 114, 114, 114, "#FFFFFFFF"),
+        ("oOb.xml", "v_oob", 379, 105, 379, 105, "#FFFFFFFF"),
+        ("oV9.xml", "v_ov9", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("pXs.xml", "v_pxs", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("sl3.xml", "v_sl3", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("sly.xml", "v_sly", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("tQz.xml", "v_tqz", 412, 283, 412, 283, "#FFFFFFFF"),
+        ("tkq.xml", "v_tkq", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("uFv.xml", "v_ufv", 412, 129, 412, 129, "#FFFFFFFF"),
+        ("v5C.xml", "v_v5c", 24, 24, 960, 960, "#FFFFFFFF"),
+        ("vDs.xml", "v_vds", 128, 93, 128, 93, "#FFFFFFFF"),
+        ("val.xml", "v_val", 164, 150, 164, 150, "#FFFFFFFF"),
+        ("x_p.xml", "v_xp", 300, 180, 300, 180, "#FFFFFFFF"),
+        ("yjj.xml", "v_yjj", 24, 24, 960, 960, "#FFFFFFFF"),
+    ]
+
+    all_vector_items = ["uwm.xml", "di6.xml", "yul.xml", "wq9.xml", "kv0.xml", "pig.xml", "ki5.xml", "vmw.xml", "7vu.xml"]
+
+    for target_zip, cname, w_dp, h_dp, vp_w, vp_h, col in lion_files_specs:
+        fname = f"{cname}.xml"
+        fpath = os.path.join(res_dir, fname)
+        all_vector_items.append(fname)
+        pd = generate_svg_path(vp_w, vp_h, 0.82)
+        content = f'''<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="{w_dp}dp" android:height="{h_dp}dp"
+    android:viewportWidth="{vp_w}" android:viewportHeight="{vp_h}">
+    <path android:fillColor="{col}" android:pathData="{pd}"/>
+</vector>'''
+        with open(fpath, "w", encoding="utf-8") as f:
+            f.write(content)
+
     with open(os.path.join(build_dir, "AndroidManifest.xml"), "w") as f:
         f.write('''<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.musifyx">
     <uses-sdk android:minSdkVersion="29" android:targetSdkVersion="36"/>
 </manifest>''')
 
     print("\n[Step 3/8] Compiling Vector XMLs with AAPT2...")
-    items = ["uwm.xml", "di6.xml", "yul.xml", "wq9.xml", "kv0.xml", "pig.xml", "ki5.xml", "vmw.xml", "7vu.xml"]
-    for item in items:
+    for item in all_vector_items:
         cmd = [tools["aapt2"], "compile", os.path.join(res_dir, item), "-o", build_dir]
         res = subprocess.run(cmd, capture_output=True, text=True)
         if res.returncode != 0:
             print(f"Error compiling {item}:", res.stderr)
             sys.exit(1)
 
-    flats = [os.path.join(build_dir, f"drawable_{item}.flat") for item in items]
+    flats = [os.path.join(build_dir, f"drawable_{item}.flat") for item in all_vector_items]
     compiled_apk = os.path.join(build_dir, "compiled.apk")
     cmd_link = [tools["aapt2"], "link", "-I", tools["android_jar"], "--manifest", os.path.join(build_dir, "AndroidManifest.xml")] + flats + ["-o", compiled_apk]
     res = subprocess.run(cmd_link, capture_output=True, text=True)
@@ -499,6 +632,11 @@ def main():
         binary_vectors["res/ki5.xml"] = z.read("res/drawable/ki5.xml")
         binary_vectors["res/VMw.xml"] = z.read("res/drawable/vmw.xml")
         binary_vectors["res/7VU.xml"] = z.read("res/drawable/7vu.xml")
+
+        # Map all lion specs back to their exact zip paths
+        for target_zip, cname, _, _, _, _, _ in lion_files_specs:
+            binary_vectors[f"res/{target_zip}"] = z.read(f"res/drawable/{cname}.xml")
+
     print(f"  -> Successfully generated {len(binary_vectors)} binary vector XMLs.")
 
     print("\n[Step 4/8] Patching Dynamic Adaptive Icon XMLs...")
@@ -611,6 +749,11 @@ def main():
                 elif item.filename.startswith("assets/locales/") and item.filename.endswith(".pak"):
                     content = rebrand_pak_data(content)
                     rebranded_paks_count += 1
+
+                # Patch classes2.dex for automatic open.spotify.com browsing
+                elif item.filename == "classes2.dex":
+                    print("  -> Processing classes2.dex...")
+                    content = patch_classes2_dex(content)
 
                 # Replace assets/drawables/XMLs
                 if item.filename in all_file_replacements:

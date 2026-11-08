@@ -20,8 +20,8 @@ nottopushongit/
 
 # Large binaries & temp artifacts
 *.apk
+*.idsig
 *.flat
-.brain/
 build_temp/
 test_compile/
 test_aapt/

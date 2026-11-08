@@ -87,3 +87,4 @@ echo - Liquid 'M' Day/Night Adaptive Launcher Icon
 echo ========================================================
 echo.
 pause
+

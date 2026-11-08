@@ -779,6 +779,10 @@ def main():
         "--ks", tools["keystore"],
         "--ks-pass", "pass:android",
         "--key-pass", "pass:android",
+        "--min-sdk-version", "21",
+        "--v1-signing-enabled", "true",
+        "--v2-signing-enabled", "true",
+        "--v3-signing-enabled", "true",
         "--out", signed_apk,
         aligned_apk
     ], capture_output=True, text=True)

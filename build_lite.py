@@ -38,7 +38,10 @@ def find_android_tools():
     versions = sorted(os.listdir(build_tools_root), reverse=True)
     if not versions:
         raise FileNotFoundError(f"No build-tools version found in {build_tools_root}")
-    build_tools_path = os.path.join(build_tools_root, versions[0])
+    # Prefer stable build-tools (e.g. 35.0.0 or 34.0.0) over unreleased previews (36+)
+    stable_bt = [v for v in versions if not v.startswith("36")]
+    chosen_bt = stable_bt[0] if stable_bt else versions[0]
+    build_tools_path = os.path.join(build_tools_root, chosen_bt)
     
     aapt2 = os.path.join(build_tools_path, "aapt2.exe")
     d8 = os.path.join(build_tools_path, "d8.bat")
@@ -49,7 +52,10 @@ def find_android_tools():
     plat_versions = sorted([p for p in os.listdir(platforms_root) if p.startswith("android-")], reverse=True)
     if not plat_versions:
         raise FileNotFoundError(f"No android platform found in {platforms_root}")
-    android_jar = os.path.join(platforms_root, plat_versions[0], "android.jar")
+    # Prefer stable platform (e.g. android-35 or android-34) over preview (android-36)
+    stable_plats = [p for p in plat_versions if p != "android-36"]
+    chosen_plat = stable_plats[0] if stable_plats else plat_versions[0]
+    android_jar = os.path.join(platforms_root, chosen_plat, "android.jar")
     
     debug_keystore = os.path.expanduser(r"~\.android\debug.keystore")
     if not os.path.exists(debug_keystore):
@@ -705,7 +711,7 @@ def build_musifyx_lite():
     android:versionName="1.0-lite">
 
     <uses-sdk
-        android:minSdkVersion="24"
+        android:minSdkVersion="21"
         android:targetSdkVersion="34"/>
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -1227,8 +1233,9 @@ public class MainActivity extends Activity {
         tools["aapt2"], "link",
         "-I", tools["android_jar"],
         "--manifest", manifest_path,
-        "--min-sdk-version", "24",
+        "--min-sdk-version", "21",
         "--target-sdk-version", "34",
+        "--no-compile-sdk-metadata",
         "-o", base_apk,
         "--java", r_class_dir,
         "--auto-add-overlay",
@@ -1312,6 +1319,10 @@ public class MainActivity extends Activity {
         tools["apksigner"], "sign",
         "--ks", tools["keystore"],
         "--ks-pass", "pass:android",
+        "--min-sdk-version", "21",
+        "--v1-signing-enabled", "true",
+        "--v2-signing-enabled", "true",
+        "--v3-signing-enabled", "true",
         "--out", final_apk,
         aligned_apk
     ]
